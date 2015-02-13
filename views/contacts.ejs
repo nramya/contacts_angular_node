@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Angular Hello World</title>
+    <script src="/angular/angular.js"></script>
+    <script>
+        angular.module('myApp', [])
+            .controller('MyController', function ($scope) {
+                $scope.message = 'Hello, World!';
+            });
+    </script>
+</head>
+<body>
+    <div ng-controller="MyController">
+        {{message}}
+        <section class="create">
+            <h1>Create a Contact</h1>
+            <input type="text" placeholder="Enter name" ng-model="contact.name"/>
+            <input type="text" placeholder="Enter location" ng-model="contact.location"/>
+            <button ng-click="create()">Create Contact</button>
+        </section>
+        <section class="view">
+            <h1>View all Contacts</h1>
+            <div ng-repeat="c in contacts">
+                <input ng-model="c.name"/>
+                <input ng-model="c.location"/>
+                <button ng-click="remove(c)">Delete Contact</button>
+                <button ng-click="update(c)">Update Contact</button>
+            </div>
+        </section>
+    </div>
+    <script src="/angular/angular.js"></script>
+    <script>
+        angular.module('myApp', [])
+                .factory('ContactFactory', function($http) { // ContactFactory is a singleton
+                    // return the service object
+                    var baseUrl = '/contacts';
+                    return {
+                        // returns a promise
+                        create: function(c) {
+                            return $http.post(baseUrl, c);
+                        },
+                        remove: function(c) {
+                            console.log('deleting the data for ' + c._id);
+                            return $http.delete(baseUrl + '/' + c._id);
+                        },
+                        getAll: function() {
+                            return $http.get(baseUrl);
+                        },
+                        update: function(c) {
+                            return $http.put(baseUrl + '/' + c._id, c);
+                        }
+                    };
+                })
+                .controller('MyController', function($scope, ContactFactory){
+                    $scope.contact = {
+                        name: '',
+                        location: ''
+                    };
+
+                    $scope.contacts = [];
+
+                    ContactFactory.getAll().success(function (data) {
+                        $scope.contacts = data;
+                    });
+
+                    $scope.create = function() {
+                        console.log($scope.contact);
+                        ContactFactory.create($scope.contact).success(function (data) {
+                            $scope.contacts.push(data);
+                            $scope.contact = {
+                                name: '',
+                                location: ''
+                            }
+                        });
+                    };
+
+                    $scope.remove = function(c) {
+                        console.log(c);
+                        ContactFactory.remove(c).success(function (data) {
+                            $scope.contacts.splice($scope.contacts.indexOf(c), 1);
+                        });
+                    };
+
+                    $scope.update = function(c) {
+                        console.log(c);
+                        ContactFactory.update(c).success(function (data) {
+                            console.log('Updated info ');
+                        });
+                    }
+                });
+    </script>
+</body>
+</html>
